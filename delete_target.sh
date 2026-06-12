@@ -1,37 +1,51 @@
 #!/bin/bash
 
-echo "🔍 开始查找并删除所有子目录中的编译垃圾"
-echo "----------------------------------------"
+echo "========================================"
+echo "  Rust/ESP32 Build Artifact Cleaner"
+echo "  Platform: Linux / macOS"
+echo "========================================"
+echo ""
 
-# 删除所有 target 目录
-find . -type d -name "target" | while read -r dir; do
-    echo "✅ 已删除目录：$dir"
-    rm -rf "$dir"
-done
+delete_dir() {
+    local name="$1"
+    local count=0
+    while IFS= read -r dir; do
+        [ -z "$dir" ] && continue
+        rm -rf "$dir"
+        echo "  [DEL] $dir"
+        count=$((count + 1))
+    done < <(find . -type d -name "$name" 2>/dev/null)
+    echo "  -> $name: $count removed"
+}
 
-# 删除所有 .DS_Store 文件
-find . -type f -name ".DS_Store" | while read -r file; do
-    echo "✅ 已删除文件：$file"
-    rm -f "$file"
-done
+delete_file() {
+    local name="$1"
+    local count=0
+    while IFS= read -r file; do
+        [ -z "$file" ] && continue
+        rm -f "$file"
+        echo "  [DEL] $file"
+        count=$((count + 1))
+    done < <(find . -type f -name "$name" 2>/dev/null)
+    echo "  -> $name: $count removed"
+}
 
-# 删除所有 .git 目录
-find . -type d -name ".git" | while read -r dir; do
-    echo "✅ 已删除目录：$dir"
-    rm -rf "$dir"
-done
+echo "[1/5] Cleaning target directories..."
+delete_dir "target"
 
-# 删除所有 .gitignore 文件
-find . -type f -name ".gitignore" | while read -r file; do
-    echo "✅ 已删除文件：$file"
-    rm -f "$file"
-done
+echo "[2/5] Cleaning .DS_Store files..."
+delete_file ".DS_Store"
 
-# 删除所有 Cargo.lock 文件
-find . -type f -name "Cargo.lock" | while read -r file; do
-    echo "✅ 已删除文件：$file"
-    rm -f "$file"
-done
+echo "[3/5] Cleaning .git directories..."
+delete_dir ".git"
 
-echo "----------------------------------------"
-echo "🎉 全部删除完成！"
+echo "[4/5] Cleaning .gitignore files..."
+delete_file ".gitignore"
+
+echo "[5/5] Cleaning Cargo.lock files..."
+delete_file "Cargo.lock"
+
+echo ""
+echo "========================================"
+echo "  Done!"
+echo "========================================"
