@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 LED Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            max-width: 420px;
+            width: 100%;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 24px;
+            color: #00d4ff;
+        }
+
+        .card {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 28px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .card h2 {
+            font-size: 1.2em;
+            margin-bottom: 16px;
+            color: #a8a8a8;
+        }
+
+        .led-on, .led-off {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 16px auto;
+            transition: all 0.3s ease;
+        }
+
+        .led-on {
+            background: radial-gradient(circle, #00ff88, #00cc66);
+            box-shadow: 0 0 30px #00ff88, 0 0 60px rgba(0, 255, 136, 0.4);
+        }
+
+        .led-off {
+            background: radial-gradient(circle, #333, #222);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        #led-status {
+            font-size: 1.4em;
+            font-weight: bold;
+            margin-bottom: 16px;
+        }
+
+        .toggle-btn {
+            background: linear-gradient(135deg, #00d4ff, #0088cc);
+            color: #fff;
+            border: none;
+            padding: 12px 32px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+
+        .toggle-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.4);
+        }
+
+        .toggle-btn:active {
+            transform: translateY(0);
+        }
+
+        .time {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: #00d4ff;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 8px;
+        }
+
+        .date {
+            font-size: 1.1em;
+            color: #a8a8a8;
+            margin-bottom: 4px;
+        }
+
+        .tz {
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ESP32 控制面板</h1>
+        <div class="card">
+            <h2>LED 状态</h2>
+            <div id="led-indicator" class="led-off"></div>
+            <p id="led-status">OFF</p>
+            <button id="toggle-btn" class="toggle-btn" onclick="toggleLED()">Toggle LED</button>
+        </div>
+        <div class="card">
+            <h2>NTP 时间</h2>
+            <p id="ntp-time" class="time">--:--:--</p>
+            <p id="ntp-date" class="date">----/--/--</p>
+            <p id="ntp-tz" class="tz">UTC+8</p>
+        </div>
+    </div>
+    <script>
+        function fetchStatus() {
+            fetch('/api/status')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var indicator = document.getElementById('led-indicator');
+                    var status = document.getElementById('led-status');
+                    indicator.className = data.led ? 'led-on' : 'led-off';
+                    status.textContent = data.led ? 'ON' : 'OFF';
+                    status.style.color = data.led ? '#00ff88' : '#ff4444';
+                    if (data.time) {
+                        document.getElementById('ntp-time').textContent = data.time;
+                        document.getElementById('ntp-date').textContent = data.date;
+                    }
+                })
+                .catch(function() {});
+        }
+
+        function toggleLED() {
+            fetch('/api/toggle', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var indicator = document.getElementById('led-indicator');
+                    var status = document.getElementById('led-status');
+                    indicator.className = data.led ? 'led-on' : 'led-off';
+                    status.textContent = data.led ? 'ON' : 'OFF';
+                    status.style.color = data.led ? '#00ff88' : '#ff4444';
+                })
+                .catch(function() {});
+        }
+
+        fetchStatus();
+        setInterval(fetchStatus, 2000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+[package]
+edition      = "2024"
+name         = "hotspot"
+version      = "0.1.0"
+
+[[bin]]
+name = "热点模式"
+path = "./src/bin/main.rs"
+
+[dependencies]
+embassy-executor = "0.10.0"
+embassy-net = { version = "0.9.0", features = [
+  "medium-ethernet",
+  "tcp",
+  "udp",
+  "dns",
+  "proto-ipv4",
+] }
+embassy-time = "0.5.0"
+embedded-io-async = "0.7.0"
+critical-section = "1.2.0"
+esp-alloc = "0.10.0"
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32s3"] }
+esp-hal = { version = "~1.1.0", features = ["esp32s3", "unstable"] }
+esp-radio = { version = "0.18.0", features = [
+  "coex",
+  "esp-alloc",
+  "esp32s3",
+  "unstable",
+  "wifi",
+] }
+esp-rtos = { version = "0.3.0", features = [
+  "esp-alloc",
+  "esp-radio",
+  "embassy",
+  "esp32s3",
+] }
+heapless = "0.9"
+panic-rtt-target = "0.2.0"
+rtt-target = "0.6.2"
+static_cell = "2.1.0"
+
+[profile.dev]
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1
+debug         = 2
+lto           = 'fat'
+opt-level     = 's'

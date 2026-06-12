@@ -1,0 +1,41 @@
+[package]
+edition      = "2024"
+name         = "ble_scanner"
+rust-version = "1.88"
+version      = "0.1.0"
+
+[[bin]]
+name = "ble_scanner"
+path = "./src/bin/main.rs"
+
+[dependencies]
+bt-hci = "0.8.0"
+embassy-executor = "0.10.0"
+embassy-futures = "0.1"
+embassy-sync = "0.7"
+embassy-time = "0.5.0"
+rtt-target = "0.6.2"
+esp-alloc = "0.10.0"
+esp-backtrace = { version = "0.19", features = ["esp32s3", "panic-handler", "println"] }
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32s3"] }
+esp-hal = { version = "~1.1.0", features = ["esp32s3", "log-04", "unstable"] }
+esp-println = { version = "0.17", features = ["esp32s3", "log-04"] }
+esp-rtos = { version = "0.3.0", features = ["esp-radio", "embassy", "esp32s3"] }
+esp-radio = { version = "0.18.0", features = ["ble", "unstable", "esp32s3"] }
+heapless = "0.9.1"
+log = "0.4"
+static_cell = "2"
+trouble-host = { version = "0.6.0", features = [
+  "default-packet-pool-mtu-255",
+  "derive",
+  "scan",
+] }
+
+[profile.dev]
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1
+debug         = 2
+lto           = 'fat'
+opt-level     = 's'

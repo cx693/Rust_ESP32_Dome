@@ -1,0 +1,9 @@
+{
+    "rust-analyzer.cargo.allTargets": false,
+    "rust-analyzer.cargo.target": null,
+    "rust-analyzer.check.onSave.command": "clippy",
+    "rust-analyzer.cargo.features": "default",
+    "rust-analyzer.server.extraEnv": {
+        "RUSTUP_TOOLCHAIN": "stable"
+    }
+}
