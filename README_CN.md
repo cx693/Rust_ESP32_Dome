@@ -2,15 +2,15 @@
 
 <img src="https://cdn.nlark.com/yuque/0/2026/png/67055297/1780842853453-2f7c908d-8ee3-443d-b967-ae06d26315c0.png" width="767" title="" crop="0,0,1,1" id="YMKvO" class="ne-image">
 
-# Tool Installation
-## Install espflash
-Run the following command to install:
+# 基础工具安装
+## 安装espflash
+使用以下指令进行安装
 
 ```bash
 cargo install espflash --locked
 ```
 
-### Check chip version
+### 查看芯片版本
 ```bash
 espflash board-info
 ```
@@ -19,7 +19,7 @@ espflash board-info
 
 
 
-### Verify debug interface with probe-rs (JTAG)
+### 使用probe-rs进行调试接口验证（JTAG）
 ```bash
 probe-rs info
 ```
@@ -28,7 +28,7 @@ probe-rs info
 
 
 
-## Install Xtensa toolchain
+## 安装Xtensa架构解释器
 ```bash
 cargo install espup --locked
 espup install
@@ -37,13 +37,13 @@ espup install
 <img src="https://cdn.nlark.com/yuque/0/2026/png/67055297/1779640231824-295eef39-fbf6-46f0-84b0-4d951166818d.png" width="585" title="" crop="0,0,1,1" id="uadb2b6fe" class="ne-image">
 
 ```bash
-echo ". /Users/your_username/export-esp.sh" >> ~/.zshrc
+echo ". /Users/你的用户名/export-esp.sh" >> ~/.zshrc
 source ~/.zshrc
 ```
 
 
 
-## Install template tool
+## 安装模版工具
 ```bash
 cargo install esp-generate --locked
 ```
@@ -51,8 +51,8 @@ cargo install esp-generate --locked
 
 
 
-# Create project template
-Use the esp-generate tool to create a project template:
+# 工具创建工程模版
+使用esp-generate工具创建工程模版
 
 ```bash
 esp-generate
@@ -60,29 +60,29 @@ esp-generate
 
 <img src="https://cdn.nlark.com/yuque/0/2026/png/67055297/1779638273404-da5c3781-416c-41b2-863a-4cebbfc15e01.png" width="585" title="" crop="0,0,1,1" id="u786d7580" class="ne-image">
 
-Enter the project name to access the configuration screen:
+输入工程名字后进入配置界面
 
 <img src="https://cdn.nlark.com/yuque/0/2026/png/67055297/1779638323211-7a07f645-a1c0-43fa-8b79-c63c76982748.png" width="585" title="" crop="0,0,1,1" id="u95914f14" class="ne-image">
 
-Select ESP type:
+选择ESP类型
 
 <img src="https://cdn.nlark.com/yuque/0/2026/png/67055297/1779639121093-ddd81b3b-65a9-49dd-a440-ad44110d1afa.png" width="585" title="" crop="0,0,1,1" id="ufbf5c75f" class="ne-image">
 
 <img src="https://cdn.nlark.com/yuque/0/2026/png/67055297/1779638342590-2459523d-d176-4739-9753-a4e5ef8e001e.png" width="585" title="" crop="0,0,1,1" id="u0c18af49" class="ne-image">
 
-Select the flasher/downloader:
+设置选择下载器
 
 <img src="https://cdn.nlark.com/yuque/0/2026/png/67055297/1779688580767-cc8c0493-edf7-4eca-a9c0-8ace03e5d228.png" width="585" title="" crop="0,0,1,1" id="ubde2bc41" class="ne-image">
 
 <img src="https://cdn.nlark.com/yuque/0/2026/png/67055297/1779638794749-3bf242d4-59aa-4fff-8e7a-0b683d7435cd.png" width="585" title="" crop="0,0,1,1" id="ue6ed664e" class="ne-image">
 
-Select the editor:
+设置使用编辑器
 
 <img src="https://cdn.nlark.com/yuque/0/2026/png/67055297/1779638862759-fec91f67-21aa-49cb-b9e8-978f9555c7b5.png" width="585" title="" crop="0,0,1,1" id="u794e7379" class="ne-image">
 
 
 
-# Build
+# 编译
 ```bash
 cargo build
 ```
@@ -93,7 +93,7 @@ cargo build
 
 
 
-# Flash
+# 下载
 ```bash
 cargo run
 ```
@@ -105,8 +105,8 @@ cargo run
 
 
 
-## Fixing missing syntax hints caused by indexing issues
-Fixed! Replace the `.vscode/settings.json` file with the following:
+## 解决索引问题导致无语法提示
+已解决！替换文件 `.vscode/settings.json` 为以下内容：
 
 ```rust
 {
@@ -122,5 +122,5 @@ Fixed! Replace the `.vscode/settings.json` file with the following:
 
 
 
-# Debug
-Default configuration works — just press F5! Note: breakpoints inside loop functions currently don't work well.
+# 调试
+默认配置已OK，直接按F5即可！注意：目前在loop函数中设置断点效果不佳。
