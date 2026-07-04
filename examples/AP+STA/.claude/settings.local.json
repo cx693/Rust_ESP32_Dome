@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo check *)",
+      "Bash(find /Volumes/CX/Applications/Rust -path \"*/embassy-executor*/src/macro.rs\" 2>/dev/null | head -3)",
+      "Read(//Volumes/CX/Applications/Rust/**)"
+    ]
+  }
+}

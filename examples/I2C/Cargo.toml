@@ -1,0 +1,46 @@
+# I2C 总线扫描器项目配置
+#
+# 本项目演示如何使用 ESP32 的 I2C 外设扫描总线上的设备
+
+[package]
+edition      = "2024"
+name         = "i2c-scanner"
+rust-version = "1.88"
+version      = "0.1.0"
+
+# 定义可执行文件
+[[bin]]
+name = "i2c-scanner"
+path = "./src/bin/main.rs"
+
+[dependencies]
+# ESP32 硬件抽象层（核心依赖）
+# - 提供 GPIO、I2C、延时等外设的 Rust 接口
+# - features: esp32s3 指定目标芯片，unstable 启用实验性功能
+esp-hal = { version = "~1.1.0", features = ["esp32s3", "unstable"] }
+
+# ESP-IDF bootloader 支持
+# - 提供 esp_app_desc! 宏，用于应用程序描述
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32s3"] }
+
+# RTT 调试输出支持
+# - panic-rtt-target: panic 时通过 RTT 输出错误信息
+# - rtt-target: 提供 rprintln! 等调试宏
+panic-rtt-target = "0.2.0"
+rtt-target = "0.6.2"
+
+# 编译优化配置
+# 详细说明请参考: https://doc.rust-lang.org/cargo/reference/profiles.html
+
+[profile.dev]
+# 开发模式优化
+# 对于资源受限的设备，默认的 debug 配置太慢太大
+# 始终启用一些优化以获得更好的性能
+opt-level = "s"
+
+[profile.release]
+# 发布模式优化
+codegen-units = 1     # 使用单线程以获得更好的 LLVM 优化
+debug         = 2     # 保留调试信息以便调试
+lto           = 'fat' # 启用链接时优化以减小二进制大小
+opt-level     = 's'   # 优化大小（对于嵌入式设备很重要）

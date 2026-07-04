@@ -1,0 +1,46 @@
+[package]
+edition      = "2024"
+name         = "ble_peripheral"       # 修正：这是 BLE 外设，不是扫描器
+rust-version = "1.88"
+version      = "0.1.0"
+
+[[bin]]
+name = "ble_peripheral"
+path = "./src/bin/main.rs"
+
+[dependencies]
+# --- Embassy 异步运行时 ---
+embassy-executor = "0.10.0"            # 异步任务执行器
+embassy-futures  = "0.1"               # join / select 等异步组合子
+embassy-time     = "0.5.0"             # 定时器（Timer::after_secs）
+
+# --- ESP 平台支持 ---
+esp-alloc              = "0.10.0"      # 堆分配器（BLE 协议栈需要动态内存）
+esp-backtrace          = { version = "0.19", features = ["esp32s3", "panic-handler", "println"] }
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32s3"] }
+esp-hal                = { version = "~1.1.0", features = ["esp32s3", "log-04", "unstable"] }
+esp-println            = { version = "0.17", features = ["esp32s3", "log-04"] }
+esp-rtos               = { version = "0.3.0", features = ["esp-radio", "embassy", "esp32s3"] }
+esp-radio              = { version = "0.18.0", features = ["ble", "unstable", "esp32s3"] }
+
+# --- BLE 协议栈 ---
+trouble-host = { version = "0.6.0", features = [
+  "default-packet-pool-mtu-255",
+  "derive",
+  "scan",
+] }
+
+# --- 工具库 ---
+embassy-sync = "0.7"                   # 同步原语（#[gatt_server] 宏内部需要）
+heapless     = "0.9.1"                 # 无堆数据结构（#[gatt_server] 宏内部需要）
+rtt-target   = "0.6.2"                 # RTT 调试输出（通过 rprintln! 宏）
+static_cell  = "2"                     # 静态存储（#[gatt_server] 宏内部需要）
+
+[profile.dev]
+opt-level = "s"                        # dev 模式也优化体积（嵌入式 Flash 有限）
+
+[profile.release]
+codegen-units = 1                      # 单编译单元 → 更好的优化
+debug         = 2                      # 保留调试信息（方便 probe-rs 调试）
+lto           = 'fat'                  # 全量链接时优化
+opt-level     = 's'                    # 优化体积

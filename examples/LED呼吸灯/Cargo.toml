@@ -1,0 +1,27 @@
+[package]
+edition      = "2024"
+name         = "led-breathing"
+rust-version = "1.88"
+version      = "0.1.0"
+
+[[bin]]
+name = "LED呼吸灯"
+path = "./src/bin/main.rs"
+
+[dependencies]
+# ESP32-S3 硬件抽象层（核心依赖）
+esp-hal = { version = "~1.1.0", features = ["esp32s3", "unstable"] }
+# IDF 引导加载程序支持（提供 esp_app_desc! 宏）
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32s3"] }
+# RTT 调试输出和 panic 处理
+panic-rtt-target = "0.2.0"
+rtt-target = "0.6.2"
+
+[profile.dev]
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1
+debug         = 2
+lto           = 'fat'
+opt-level     = 's'

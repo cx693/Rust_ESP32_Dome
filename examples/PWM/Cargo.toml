@@ -1,0 +1,32 @@
+[package]
+edition      = "2024"
+name         = "pwm-rgb-led"
+rust-version = "1.88"
+version      = "0.1.0"
+
+[[bin]]
+name = "PWM"
+path = "./src/bin/main.rs"
+
+[dependencies]
+# ESP32 硬件抽象层（核心依赖）
+esp-hal = { version = "~1.1.0", features = ["esp32s3", "unstable"] }
+
+# ESP-IDF bootloader 支持（启动引导所需）
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32s3"] }
+
+# RTT 调试输出（通过 probe-rs 查看串口日志）
+panic-rtt-target = "0.2.0"
+rtt-target = "0.6.2"
+
+# --- 编译优化配置 ---
+
+[profile.dev]
+# 嵌入式设备资源有限，debug 模式也需要适度优化
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1     # 单线程编译，LLVM 可做更深度优化
+debug         = 2     # 保留调试信息，方便排查问题
+lto           = 'fat' # 链接时优化，减小二进制体积
+opt-level     = 's'   # 优化体积（嵌入式 Flash 有限）

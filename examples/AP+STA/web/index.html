@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>ESP32 Wi-Fi 配网</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            min-height: 100vh;
+            padding: 16px;
+        }
+        .container { max-width: 500px; margin: 0 auto; }
+        h1 {
+            font-size: 1.6em;
+            margin-bottom: 20px;
+            color: #00d4ff;
+            text-align: center;
+        }
+        .card {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+        }
+        .card h2 {
+            font-size: 1em;
+            margin-bottom: 14px;
+            color: #a8a8a8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .badge {
+            display: inline-block;
+            background: #00d4ff;
+            color: #1a1a2e;
+            font-size: 0.75em;
+            font-weight: bold;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+        .badge-green { background: #00ff88; }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .info-item { text-align: center; }
+        .info-item .label {
+            display: block;
+            font-size: 0.75em;
+            color: #666;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .info-item .value {
+            display: block;
+            font-size: 1.05em;
+            font-weight: bold;
+            color: #00d4ff;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            width: 100%;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0088cc);
+            color: #fff;
+        }
+        .btn-primary:hover { box-shadow: 0 4px 15px rgba(0,212,255,0.4); }
+        .btn-primary:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4466, #cc2244);
+            color: #fff;
+        }
+        .btn-danger:hover { box-shadow: 0 4px 15px rgba(255,68,102,0.4); }
+
+        .scan-list { list-style: none; }
+        .scan-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 8px;
+            border-bottom: 1px solid #1e1e3a;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: background 0.15s;
+        }
+        .scan-item:hover { background: rgba(0,212,255,0.08); }
+        .scan-item.selected { background: rgba(0,212,255,0.15); }
+        .scan-item:last-child { border-bottom: none; }
+        .scan-info { flex: 1; min-width: 0; }
+        .scan-ssid {
+            font-weight: 600;
+            font-size: 0.95em;
+            color: #eee;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .scan-detail {
+            font-size: 0.75em;
+            color: #888;
+            margin-top: 2px;
+        }
+        .signal-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 18px;
+            margin-left: 10px;
+        }
+        .signal-bar {
+            width: 4px;
+            border-radius: 1px;
+            background: #333;
+        }
+        .signal-bar.active { background: #00ff88; }
+
+        .lock-icon {
+            font-size: 0.8em;
+            margin-left: 6px;
+            color: #ffaa00;
+        }
+
+        .password-section {
+            margin-top: 14px;
+            display: none;
+        }
+        .password-section.show { display: block; }
+        .selected-ssid-label {
+            font-size: 0.9em;
+            color: #00d4ff;
+            margin-bottom: 8px;
+        }
+        .password-input {
+            width: 100%;
+            padding: 12px 14px;
+            border: 2px solid #2a2a4e;
+            border-radius: 10px;
+            background: #0d1525;
+            color: #eee;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .password-input:focus { border-color: #00d4ff; }
+        .password-input::placeholder { color: #555; }
+
+        .connect-section {
+            margin-top: 14px;
+            display: none;
+        }
+        .connect-section.show { display: block; }
+
+        .status-msg {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 12px;
+            font-size: 0.9em;
+            display: none;
+        }
+        .status-msg.show { display: block; }
+        .status-msg.info { background: rgba(0,212,255,0.15); color: #00d4ff; }
+        .status-msg.success { background: rgba(0,255,136,0.15); color: #00ff88; }
+        .status-msg.error { background: rgba(255,68,102,0.15); color: #ff4466; }
+
+        .spinner {
+            display: inline-block;
+            width: 16px; height: 16px;
+            border: 2px solid #555;
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .connected-view { display: none; }
+        .connected-view.show { display: block; }
+        .ap-view { display: block; }
+        .ap-view.hide { display: none; }
+
+        .ip-display {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            padding: 12px;
+            background: rgba(0,255,136,0.08);
+            border-radius: 10px;
+            margin: 12px 0;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #555;
+            padding: 24px 8px;
+            font-size: 0.9em;
+        }
+
+        .footer {
+            text-align: center;
+            color: #444;
+            font-size: 0.75em;
+            margin-top: 8px;
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @media (max-width: 400px) {
+            body { padding: 10px; }
+            .card { padding: 16px; }
+            h1 { font-size: 1.3em; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ESP32 Wi-Fi 配网</h1>
+
+        <div id="ap-view" class="ap-view">
+            <div class="card">
+                <h2>热点信息</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">SSID</span>
+                        <span id="ap-ssid" class="value">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">网关 IP</span>
+                        <span id="ap-ip" class="value">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>
+                    附近 Wi-Fi
+                    <span id="scan-count" class="badge">0</span>
+                </h2>
+                <button id="scan-btn" class="btn btn-primary" onclick="startScan()">
+                    扫描附近网络
+                </button>
+                <div id="scan-status" class="status-msg info" style="margin-top:10px"></div>
+                <ul id="scan-list" class="scan-list" style="margin-top:12px"></ul>
+
+                <div id="password-section" class="password-section">
+                    <div class="selected-ssid-label">
+                        连接到: <strong id="selected-ssid-label"></strong>
+                    </div>
+                    <input id="password-input" class="password-input"
+                           type="password" placeholder="输入 Wi-Fi 密码"
+                           autocomplete="off">
+                    <div class="connect-section show">
+                        <button id="connect-btn" class="btn btn-primary"
+                                style="margin-top:10px" onclick="doConnect()">
+                            连接
+                        </button>
+                    </div>
+                </div>
+                <div id="connect-status" class="status-msg" style="margin-top:10px"></div>
+            </div>
+        </div>
+
+        <div id="connected-view" class="connected-view">
+            <div class="card">
+                <h2>
+                    已连接
+                    <span class="badge badge-green">在线</span>
+                </h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">路由器</span>
+                        <span id="sta-ssid" class="value">--</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">设备 IP</span>
+                        <span id="sta-ip" class="value">--</span>
+                    </div>
+                </div>
+                <div id="sta-ip-big" class="ip-display">--</div>
+                <button class="btn btn-danger" onclick="doDisconnect()">
+                    断开并重新配网
+                </button>
+                <div id="disconnect-status" class="status-msg" style="margin-top:10px"></div>
+            </div>
+        </div>
+
+        <p class="footer">
+            <span class="status-dot pulse" style="display:inline-block;width:8px;height:8px;
+                   border-radius:50%;background:#00ff88;box-shadow:0 0 6px #00ff88;
+                   vertical-align:middle;margin-right:4px"></span>
+            自动刷新 · 每 3 秒
+        </p>
+    </div>
+
+    <script>
+        var selectedSSID = '';
+        var scanResults = [];
+        var scanning = false;
+        var connecting = false;
+
+        function signalBars(rssi) {
+            var level;
+            if (rssi >= -50) level = 4;
+            else if (rssi >= -60) level = 3;
+            else if (rssi >= -70) level = 2;
+            else level = 1;
+            var html = '<div class="signal-bars">';
+            var heights = [5, 9, 13, 18];
+            for (var i = 0; i < 4; i++) {
+                html += '<div class="signal-bar' + (i < level ? ' active' : '')
+                      + '" style="height:' + heights[i] + 'px"></div>';
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function authLabel(auth) {
+            if (!auth || auth === 'None' || auth === 'Open') return '';
+            return '<span class="lock-icon">&#128274;</span>';
+        }
+
+        function showStatus(id, msg, type) {
+            var el = document.getElementById(id);
+            el.innerHTML = msg;
+            el.className = 'status-msg show ' + type;
+        }
+        function hideStatus(id) {
+            var el = document.getElementById(id);
+            el.className = 'status-msg';
+        }
+
+        function startScan() {
+            if (scanning) return;
+            scanning = true;
+            var btn = document.getElementById('scan-btn');
+            btn.disabled = true;
+            btn.textContent = '扫描中...';
+            showStatus('scan-status', '正在扫描附近 Wi-Fi...', 'info');
+            document.getElementById('scan-list').innerHTML = '';
+            document.getElementById('password-section').className = 'password-section';
+            hideStatus('connect-status');
+
+            fetch('/api/scan')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    scanResults = data.networks || [];
+                    renderScanResults();
+                    hideStatus('scan-status');
+                    document.getElementById('scan-count').textContent = scanResults.length;
+                })
+                .catch(function() {
+                    showStatus('scan-status', '扫描失败，请重试', 'error');
+                })
+                .finally(function() {
+                    scanning = false;
+                    btn.disabled = false;
+                    btn.textContent = '扫描附近网络';
+                });
+        }
+
+        function renderScanResults() {
+            var list = document.getElementById('scan-list');
+            if (scanResults.length === 0) {
+                list.innerHTML = '<li class="empty-msg">未发现 Wi-Fi 网络</li>';
+                return;
+            }
+            var html = '';
+            for (var i = 0; i < scanResults.length; i++) {
+                var ap = scanResults[i];
+                var ssid = ap.ssid || 'Hidden';
+                var sel = ssid === selectedSSID ? ' selected' : '';
+                html += '<li class="scan-item' + sel + '" onclick="selectNetwork(' + i + ')">';
+                html += '<div class="scan-info">';
+                html += '<div class="scan-ssid">' + escapeHtml(ssid) + authLabel(ap.auth) + '</div>';
+                html += '<div class="scan-detail">CH ' + ap.channel + ' · ' + ap.rssi + ' dBm</div>';
+                html += '</div>';
+                html += signalBars(ap.rssi);
+                html += '</li>';
+            }
+            list.innerHTML = html;
+        }
+
+        function selectNetwork(index) {
+            var ap = scanResults[index];
+            selectedSSID = ap.ssid;
+            document.getElementById('selected-ssid-label').textContent = ap.ssid;
+            document.getElementById('password-input').value = '';
+            document.getElementById('password-section').className = 'password-section show';
+            document.getElementById('password-input').focus();
+            hideStatus('connect-status');
+            renderScanResults();
+        }
+
+        function doConnect() {
+            if (connecting) return;
+            var ssid = selectedSSID;
+            var password = document.getElementById('password-input').value;
+            if (!ssid) { showStatus('connect-status', '请先选择一个 Wi-Fi', 'error'); return; }
+
+            connecting = true;
+            var btn = document.getElementById('connect-btn');
+            btn.disabled = true;
+            showStatus('connect-status', '<span class="spinner"></span>正在连接...', 'info');
+
+            fetch('/api/connect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ssid: ssid, password: password })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.ok) {
+                    showStatus('connect-status', '<span class="spinner"></span>正在连接 "' + escapeHtml(ssid) + '"，请等待...', 'info');
+                    pollConnectResult(ssid, 0);
+                } else {
+                    showStatus('connect-status', '请求失败: ' + (data.error || '未知错误'), 'error');
+                    connecting = false;
+                    btn.disabled = false;
+                }
+            })
+            .catch(function() {
+                showStatus('connect-status', '请求失败，请重试', 'error');
+                connecting = false;
+                btn.disabled = false;
+            });
+        }
+
+        function pollConnectResult(ssid, attempts) {
+            if (attempts >= 30) {
+                showStatus('connect-status', '连接超时，请重试', 'error');
+                connecting = false;
+                document.getElementById('connect-btn').disabled = false;
+                return;
+            }
+            setTimeout(function() {
+                fetch('/api/status')
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.state === 'connected') {
+                            showStatus('connect-status', '连接成功！设备 IP: ' + (data.ip || '获取中...'), 'success');
+                            connecting = false;
+                            document.getElementById('connect-btn').disabled = false;
+                            fetchStatus();
+                        } else if (data.state === 'connecting') {
+                            pollConnectResult(ssid, attempts + 1);
+                        } else {
+                            showStatus('connect-status', '连接失败，请检查密码后重试', 'error');
+                            connecting = false;
+                            document.getElementById('connect-btn').disabled = false;
+                        }
+                    })
+                    .catch(function() {
+                        pollConnectResult(ssid, attempts + 1);
+                    });
+            }, 1000);
+        }
+
+        function doDisconnect() {
+            var el = document.getElementById('disconnect-status');
+            el.className = 'status-msg show info';
+            el.textContent = '正在断开...';
+            fetch('/api/disconnect', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function() {
+                    el.className = 'status-msg show success';
+                    el.textContent = '已断开，重新进入配网模式';
+                    setTimeout(function() { fetchStatus(); }, 1000);
+                })
+                .catch(function() {
+                    el.className = 'status-msg show error';
+                    el.textContent = '断开失败';
+                });
+        }
+
+        function fetchStatus() {
+            fetch('/api/status')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.state === 'connected') {
+                        document.getElementById('ap-view').className = 'ap-view hide';
+                        document.getElementById('connected-view').className = 'connected-view show';
+                        document.getElementById('sta-ssid').textContent = data.ssid || '--';
+                        document.getElementById('sta-ip').textContent = data.ip || '--';
+                        document.getElementById('sta-ip-big').textContent = data.ip || '--';
+                    } else if (data.state === 'connecting') {
+                        document.getElementById('ap-view').className = 'ap-view';
+                        document.getElementById('connected-view').className = 'connected-view';
+                        showStatus('connect-status', '<span class="spinner"></span>正在连接 "' +
+                                   escapeHtml(data.ssid || '') + '"...', 'info');
+                    } else {
+                        document.getElementById('ap-view').className = 'ap-view';
+                        document.getElementById('connected-view').className = 'connected-view';
+                        if (data.ssid) document.getElementById('ap-ssid').textContent = data.ssid;
+                        if (data.gateway) document.getElementById('ap-ip').textContent = data.gateway;
+                    }
+                })
+                .catch(function() {});
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        fetchStatus();
+        setInterval(fetchStatus, 3000);
+    </script>
+</body>
+</html>
