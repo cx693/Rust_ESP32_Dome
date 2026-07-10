@@ -1,0 +1,65 @@
+[package]
+edition = "2024"
+name = "hello"
+
+[dependencies]
+esp-hal = { version = "~1.1.0", features = ["esp32s3", "unstable"] }
+
+esp-rtos = { version = "0.3.0", features = [
+  "esp-alloc",
+  "esp-radio",
+  "esp32s3",
+  "embassy",
+] }
+
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32s3"] }
+
+critical-section = "1.2.0"
+embedded-hal = "1.0.0"
+embedded-hal-async = "1.0.0"
+embedded-io = "0.6.1"
+heapless = "0.8"
+esp-alloc = "0.10.0"
+esp-backtrace = { version = "0.19.0", features = [
+  "esp32s3",
+  "panic-handler",
+  "println",
+] }
+esp-println = { version = "0.17.0", features = ["esp32s3", "defmt-espflash"] }
+esp-radio = { version = "0.18.0", features = [
+  "esp-alloc",
+  "esp32s3",
+  "unstable",
+  "wifi",
+] }
+smoltcp = { version = "0.13.0", default-features = false, features = [
+  "medium-ethernet",
+  "multicast",
+  "proto-dhcpv4",
+  "proto-dns",
+  "proto-ipv4",
+  "socket-dns",
+  "socket-icmp",
+  "socket-raw",
+  "socket-tcp",
+  "socket-udp",
+] }
+
+# defmt 通过 esp-println 的 defmt-espflash feature 支持
+defmt = "1.1.0"
+embassy-executor = "0.10.0"
+embassy-time = "0.5.1"
+micromath = "2.1.0"
+
+
+# For fine tuning these settings, please refer to https://doc.rust-lang.org/cargo/reference/profiles.html
+[profile.dev]
+# The default debug profile is too slow and too big for resource-constrained devices.
+# Always build with some optimizations enabled.
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1 # LLVM can perform better optimizations using a single thread
+debug = 2         # prefer slower builds but better debugging experience
+lto = 'fat'
+opt-level = 's'
